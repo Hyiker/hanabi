@@ -4,6 +4,7 @@
     Keep fool, keep hungry.
 */
 
+use hanabi::ThreadPool;
 use std::fs;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
@@ -12,12 +13,15 @@ use std::time::Duration;
 fn main() {
     // returns a TcpListener instance(wrapped by Result<T,E>)
     let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
+    let pool = ThreadPool::new(4);
     // iterate to fetch the incoming tcp connection
     // store the tcp connection inside stream
     // it's currently synchronized.
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        handle_connection(stream);
+        pool.execute(|| {
+            handle_connection(stream);
+        });
     }
 }
 fn handle_connection(mut stream: TcpStream) {
